@@ -905,6 +905,7 @@ pub(crate) struct ClientShellState {
     pub(super) reveal_navigation_workspace: bool,
     pub(super) overlay: Option<ClientShellOverlay>,
     pub(super) previous_pane_id: Option<String>,
+    pub(super) pane_history: super::pane_history::PaneHistory,
     pub(super) pane_mouse_gesture: Option<ClientPaneMouseGesture>,
     pub(super) link_hover: Option<super::link_hover::LinkHover>,
     pub(super) url_click_consumes_until_up: bool,
@@ -1079,6 +1080,7 @@ impl ClientShellState {
             reveal_navigation_workspace: false,
             overlay,
             previous_pane_id: None,
+            pane_history: Default::default(),
             pane_mouse_gesture: None,
             link_hover: None,
             url_click_consumes_until_up: false,
@@ -1275,6 +1277,7 @@ impl ClientShellState {
             .startup_onboarding
             .then_some(ClientShellOverlay::Onboarding);
         self.previous_pane_id = None;
+        self.pane_history.clear();
         self.pane_mouse_gesture = None;
         self.link_hover = None;
         self.url_click_consumes_until_up = false;
@@ -1391,6 +1394,9 @@ impl ClientShellState {
             .and_then(|current| current.focused_pane_id.as_ref())
             .filter(|previous| Some(previous.as_str()) != snapshot.focused_pane_id.as_deref())
         {
+            if let Some(next) = snapshot.focused_pane_id.as_deref() {
+                self.pane_history.record(previous, next);
+            }
             self.previous_pane_id = Some(previous.clone());
         }
         if snapshot_keybindings_changed {
