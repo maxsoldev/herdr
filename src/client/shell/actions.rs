@@ -868,6 +868,19 @@ impl ClientShellState {
         };
         use crate::input::KeybindAction;
 
+        if let Some(step) = match action {
+            KeybindAction::PaneBack => Some(super::pane_history::PaneHistoryStep::Back),
+            KeybindAction::PaneForward => Some(super::pane_history::PaneHistoryStep::Forward),
+            _ => None,
+        } {
+            let snapshot = self.snapshot.as_deref()?;
+            let focused = snapshot.focused_pane_id.as_deref();
+            let pane_id = self.pane_history.step(step, focused, |id| {
+                snapshot.panes.iter().any(|pane| pane.pane_id == id)
+            })?;
+            return Some(Method::PaneFocus(PaneTarget { pane_id }));
+        }
+
         let snapshot = self.snapshot.as_deref()?;
         let focused_workspace = snapshot.focused_workspace_id.clone()?;
         let focused_tab = snapshot.focused_tab_id.clone();
@@ -1095,6 +1108,7 @@ impl ClientShellState {
                     pane_id: pane_id.clone(),
                 }))
             }
+            KeybindAction::PaneBack | KeybindAction::PaneForward => None,
             KeybindAction::Zoom => Some(Method::PaneZoom(PaneZoomParams {
                 pane_id: focused_pane,
                 mode: PaneZoomMode::Toggle,

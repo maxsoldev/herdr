@@ -202,6 +202,11 @@ pub(crate) fn keybind_help_groups(
                     "cycle pane previous",
                 ),
                 entry(binding_label(&keybinds.last_pane), "last pane"),
+                entry(binding_label(&keybinds.pane_back), "pane history back"),
+                entry(
+                    binding_label(&keybinds.pane_forward),
+                    "pane history forward",
+                ),
             ],
         ),
     ];
